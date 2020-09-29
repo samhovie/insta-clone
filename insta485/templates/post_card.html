@@ -1,0 +1,73 @@
+<!--
+    Template for a single, isolated post 
+    
+    context:
+        post = { postid, filename. owner, created, poster_filename }
+        likes = [list of users who liked post]
+        comments = [{owner, text} for comments on post]
+        single_post_view = True/False if clicked on a single post
+-->
+<div class="post">
+    <header class="post-header">
+        <a href="{{ url_for('show_profile', user_id=post.owner) }}"> <img src="{{ url_for('show_upload', path=post.poster_filename) }}" alt="{{ post.owner }}'s profile picture"> {{ post.owner }}</a>
+        <a href="{{ url_for('show_post', post_id=post.postid) }}">{{ post.created }}</a>
+    </header>
+
+    <picture class="post-content">
+        <img src="{{ url_for('show_upload', path=post.filename) }}" alt="post-content">
+    </picture>
+
+    <div class="post-text">
+        <p class = "likes">
+            {% if likes|length == 1 %}
+                1 like
+            {% else %}
+                {{ likes|length }} likes
+            {% endif %}
+        </p>
+
+        {% for comment in comments %}
+            <div class="comment">
+                <a href="{{ url_for('show_profile', user_id=comment.owner) }}"> {{ comment.owner }} </a>
+                <p>{{ comment.text }}</p>
+
+                {% if single_post_view and comment.owner == current_user.username %}
+                    <!-- DELETE COMMENT -->
+                    <form action="" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="commentid" value="{{ comment.commentid }}"/>
+                        <input type="submit" name="uncomment" value="delete"/>
+                    </form>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        {% if current_user.username not in likes %}
+          <!-- LIKE -->
+          <form action="" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="postid" value="{{ post.postid }}"/>
+            <input type="submit" name="like" value="like"/>
+          </form>
+        {% else %}
+          <!-- UNLIKE -->
+          <form action="" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="postid" value="{{ post.postid }}"/>
+            <input type="submit" name="unlike" value="unlike"/>
+          </form>
+        {% endif %}
+
+        <!-- COMMENT -->
+        <form action="" method="post" enctype="multipart/form-data">
+          <input type="hidden" name="postid" value="{{ post.postid }}"/>
+          <input type="text" name="text"/>
+          <input type="submit" name="comment" value="comment"/>
+        </form>
+
+        {% if single_post_view and post.owner == current_user.username %}
+            <!-- DELETE POST -->
+            <form action="" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="postid" value="{{ post.postid }}"/>
+                <input type="submit" name="delete" value="delete this post"/>
+            </form>
+        {% endif %}
+    </div>
+</div>

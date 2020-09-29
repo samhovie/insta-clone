@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# ./bin/makesubmit
+
+# Stop on errors, print commands
+# See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+set -Eeuo pipefail
+
+SHELL_NAME="$(uname -s)"
+if [ "$SHELL_NAME" = 'Darwin' ]; then
+  tar \
+    --disable-copyfile \
+    --exclude '*__pycache__*' \
+    -czvf submit.tar.gz \
+    bin \
+    insta485 \
+    setup.py \
+    sql \
+    deployed_insta485.html \
+    deployed_insta485.log
+else
+  tar \
+    --exclude '*__pycache__*' \
+    -czvf submit.tar.gz \
+    bin \
+    insta485 \
+    setup.py \
+    sql \
+    deployed_insta485.html \
+    deployed_insta485.log
+fi

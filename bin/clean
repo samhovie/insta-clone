@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# insta485clean 
+
+# Stop on errors, print commands
+# See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+set -Eeuo pipefail
+
+./bin/insta485db destroy
+rm -rf tmp insta485/__pycache__ insta485/views/__pycache__
+rm -rf tests/__pycache__
+rm -f submit.tar.gz

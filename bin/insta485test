@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# insta485test
+#
+# Test code style, doc style, unit tests
+
+# Stop on errors, print commands
+# See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+set -Eeuo pipefail
+set -x
+
+
+# Style tests
+pycodestyle insta485
+pydocstyle insta485
+pylint --disable=cyclic-import insta485
+
+# Unit tests
+pytest -v tests

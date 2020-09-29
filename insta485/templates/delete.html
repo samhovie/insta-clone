@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block main %}
+  <h1>Delete Your Account</h1>
+  <p>The account "{{ current_user.username }}" will be deleted.</p>
+
+  <!-- DO NOT CHANGE THIS -->
+  <form action="" method="post" enctype="multipart/form-data">
+    <input type="submit" name="delete" value="confirm delete account"/>
+  </form>
+
+{% endblock %}

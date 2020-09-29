@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>insta485</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a class="left" href="/">Insta485 Home</a>
+        {% if current_user is not undefined and current_user is not none %}
+        <a class="right" href="{{ url_for('show_explore') }}">Explore</a>
+          <a class="right" href="{{
+            url_for('show_profile', user_id=current_user.username)
+          }}/">
+            {{ current_user.username }}
+          </a>
+        {% endif %}
+      </nav>
+    </header>
+    <main>
+      {% block main %}{% endblock %}
+    </main>
+  </body>
+</html>

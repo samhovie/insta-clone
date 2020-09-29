@@ -1,0 +1,166 @@
+body {
+  background: whitesmoke;
+  font-family: "Trebuchet MS", "Helvetica Neue", "Helvetica", "Arial",
+    sans-serif;
+  margin: 0;
+}
+
+a {
+  color: dodgerblue;
+  text-decoration: none;
+}
+
+header {
+  background: white;
+  border-bottom: 1px solid lightgray;
+  height: 50px;
+  line-height: 50px;
+  width: 100%;
+}
+
+nav {
+  height: 100%;
+}
+
+nav > .left {
+  color: black;
+  float: left;
+  margin-left: 20px;
+}
+
+nav > .right {
+  float: right;
+  margin-right: 20px;
+}
+
+nav img {
+  height: 50px;
+  width: 50px;
+}
+
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  min-width: 250px;
+  width: 50%;
+}
+
+.post {
+  background: white;
+  border: 1px solid lightgray;
+  border-radius: 10px;
+  margin-top: 100px;
+  width: 100%;
+}
+
+.post > header {
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  height: 50px;
+  line-height: 50px;
+}
+
+.post nav > .left:first-child {
+  margin-left: 0;
+}
+
+.post nav > .left:not(:first-child) {
+  color: dodgerblue;
+  margin-left: 5px;
+}
+
+.post nav > .right:not(:last-child) {
+  margin-right: 5px;
+}
+
+.post > header img {
+  border: 1px solid lightgray;
+  border-radius: 21px;
+  display: block;
+  height: 42px;
+  margin: 4px;
+  object-fit: cover;
+  width: 42px;
+}
+
+.post > img {
+  width: 100%;
+}
+
+.post > section {
+  margin: 0 10px;
+  padding: 15px 8px;
+}
+
+.post > .reactions {
+  border-bottom: 1px solid lightgray;
+}
+
+.comments > :not(:first-child) {
+  margin-top: 10px;
+}
+
+.user-stats {
+  margin-bottom: 10px;
+}
+
+.user-profile {
+  border-bottom: 1px solid lightgray;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+}
+
+.post-previews {
+  display: grid;
+  grid-gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  margin: 0 auto;
+  width: 100%;
+}
+
+.post-preview {
+  display: inline-block;
+}
+
+.post-preview img {
+  display: block;
+  width: 100%;
+}
+
+.not-following > article, .followers > article, .following > article {
+  background: white;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  height: 50px;
+  margin-bottom: 10px;
+  padding: 5px;
+}
+
+.not-following > article > *, .followers > article > *,
+.following > article > * {
+  height: 44px;
+  line-height: 44px;
+  margin: 3px;
+}
+
+.not-following > article > .left, .followers > article > .left,
+.following > article > .left {
+  margin-left: 6px;
+  float: left;
+}
+
+.not-following > article > .right, .followers > article > .right,
+.following > article > .right {
+  color: gray;
+  float: right;
+  margin-right: 6px;
+}
+
+.not-following img, .followers img, .following img {
+  border: 1px solid lightgray;
+  border-radius: 22px;
+  display: inline-block;
+  object-fit: cover;
+  height: 44px;
+  width: 44px;
+}
