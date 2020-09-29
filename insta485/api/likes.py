@@ -1,9 +1,11 @@
 """REST API for likes."""
 import flask
 import insta485
+from insta485.api.utils import requires_login
 
 
 @insta485.app.route('/api/v1/p/<int:postid_url_slug>/likes/', methods=["GET"])
+@requires_login
 def get_likes(postid_url_slug):
     """Return likes on postid.
 
