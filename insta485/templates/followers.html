@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>Followers</h1>
+{% for follower in followers %}
+    <!-- <div> -->
+    <img src="{{ url_for('show_upload', path= follower.filename) }}" alt="{{ follower.username }}'s profile picture">
+    <a href="{{ url_for('show_profile', user_id=follower.username) }}"> {{ follower.username }} </a>
+    <p>{{ follower.relate }}</p>
+    {% if follower.relate == "following" %}
+        <!-- DO NOT CHANGE THIS (aside from where we say 'FIXME') -->
+        <form method="post" enctype="multipart/form-data">
+            <input type="submit" name="unfollow" value="unfollow"/>
+            <input type="hidden" name="username" value="{{follower.username}}"/>
+        </form>
+    {% endif %}
+    {% if follower.relate == "not following" %}
+        <!-- DO NOT CHANGE THIS (aside from where we say 'FIXME') -->
+        <form method="post" enctype="multipart/form-data">
+            <input type="submit" name="follow" value="follow"/>
+            <input type="hidden" name="username" value="{{follower.username}}"/>
+        </form>
+    {% endif %}
+    <!-- no text or button otherwise -->
+    <!-- </div> -->
+{% endfor %}
+{% endblock %}

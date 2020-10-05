@@ -7,12 +7,11 @@ URLs include:
 import arrow
 import flask
 import insta485
+
 from insta485.views.utils import (
-    requires_login,
     get_current_user,
-    like_post,
-    unlike_post,
-    add_comment,
+    like_unlike_or_comment,
+    requires_login,
 )
 
 
@@ -26,15 +25,7 @@ def show_index():
 
     # Handle POST requests for submitting likes, unlikes and comments
     if flask.request.method == "POST":
-        if "like" in flask.request.form:
-            like_post(current_user["username"], flask.request.form["postid"])
-
-        elif "unlike" in flask.request.form:
-            unlike_post(current_user["username"], flask.request.form["postid"])
-
-        elif "comment" in flask.request.form:
-            add_comment(current_user["username"], flask.request.form["postid"],
-                        flask.request.form["text"])
+        like_unlike_or_comment(current_user)
 
     # Retreive data to render home page template
 

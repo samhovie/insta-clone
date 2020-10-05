@@ -7,12 +7,11 @@ URLs include:
 import arrow
 import flask
 import insta485
+
 from insta485.views.utils import (
+    like_unlike_or_comment,
     requires_login,
     get_current_user,
-    like_post,
-    unlike_post,
-    add_comment,
     remove_comment,
     remove_post,
 )
@@ -35,20 +34,11 @@ def show_post(post_id):
                 flask.url_for('show_profile', user_id=current_user["username"])
             )
 
-        # Not elif because pylint
-        if "like" in flask.request.form:
-            like_post(current_user["username"], flask.request.form["postid"])
-
-        elif "unlike" in flask.request.form:
-            unlike_post(current_user["username"], flask.request.form["postid"])
-
-        elif "comment" in flask.request.form:
-            add_comment(current_user["username"], flask.request.form["postid"],
-                        flask.request.form["text"])
-
-        elif "uncomment" in flask.request.form:
+        if "uncomment" in flask.request.form:
             remove_comment(current_user["username"],
                            flask.request.form["commentid"])
+        else:
+            like_unlike_or_comment(current_user)
 
     # Post will contain postid, filename, owner, created, poster_filename
     post = connection.execute(

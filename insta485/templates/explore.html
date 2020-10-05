@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>Discover People</h1>
+{% for user in users %}
+<div>
+    <a href="{{ url_for('show_profile', user_id=user.username) }}">
+      <img src="{{ url_for('show_upload', path=user.filename) }}" alt="{{ user.username }}'s profile picture"> {{ user.username }}
+    </a>
+    <form method="post" enctype="multipart/form-data">
+        <input type="submit" name="follow" value="follow"/>
+        <input type="hidden" name="username" value="{{user.username}}"/>
+    </form>
+</div>
+
+
+
+{% endfor %}
+{% endblock %}

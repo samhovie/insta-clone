@@ -169,6 +169,16 @@ def requires_login(route):
     return with_login_required
 
 
+def create_post(username, filename):
+    """Create post entry for username."""
+    connection = insta485.model.get_db()
+    connection.execute(
+        "INSERT INTO posts (owner, filename) "
+        "VALUES (?, ?);",
+        (username, filename)
+    )
+
+
 def remove_post(username, post_id):
     """Remove post_id if username is post owner."""
     connection = insta485.model.get_db()
@@ -196,6 +206,16 @@ def remove_post(username, post_id):
 def like_post(username, post_id):
     """Create entry for username liking post_id in likes."""
     connection = insta485.model.get_db()
+
+    like = connection.execute(
+        "SELECT * FROM likes "
+        "WHERE owner = ? AND postid = ?;",
+        (username, post_id)
+    ).fetchone()
+
+    if like is not None:
+        flask.abort(400)
+
     connection.execute(
         "INSERT INTO likes (owner, postid) "
         "VALUES (?, ?);",
@@ -245,15 +265,47 @@ def remove_comment(username, comment_id):
         (comment_id)
     )
 
-def unfollow(user1, user2):
+
+def add_follower(username1, username2):
+    """Add username1 as follower of username2."""
     connection = insta485.model.get_db()
 
+    already_following = connection.execute(
+        "SELECT * FROM following "
+        "WHERE username1 = ? "
+        "AND username2 = ?;",
+        (username1, username2)
+    ).fetchone() is not None
+
+    if already_following:
+        flask.abort(400)
+
+    connection.execute(
+        "INSERT INTO following (username1, username2) "
+        "VALUES (?, ?);",
+        (username1, username2)
+    )
+
+
+def remove_follower(username1, username2):
+    """Remove username1 from followers of username2."""
+    connection = insta485.model.get_db()
     connection.execute(
         "DELETE FROM following "
-        "WHERE username1 = :user1 "
-        "AND username2 = :user2;",
-        {
-            "user1": user1,
-            "user2": user2,
-        }
+        "WHERE username1 = ? "
+        "AND username2 = ?;",
+        (username1, username2)
     )
+
+
+def like_unlike_or_comment(current_user):
+    """Perform like, unlike, or comment actions."""
+    if "like" in flask.request.form:
+        like_post(current_user["username"], flask.request.form["postid"])
+
+    elif "unlike" in flask.request.form:
+        unlike_post(current_user["username"], flask.request.form["postid"])
+
+    elif "comment" in flask.request.form:
+        add_comment(current_user["username"], flask.request.form["postid"],
+                    flask.request.form["text"])

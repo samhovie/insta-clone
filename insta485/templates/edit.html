@@ -2,11 +2,11 @@
 {% block main %}
   <h1>Edit Your Account</h1>
 
-  <img src="{{ url_for('show_upload', path=current_user.filename) }}">
+  <img src="{{ url_for('show_upload', path=current_user.filename) }}" alt="Uploaded profile picture for {{current_user.username}}">
   <p>{{ current_user.username }}</p>
 
   <!-- DO NOT CHANGE THIS -->
-  <form action="" method="post" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data">
     <input type="file" name="file">
     <input type="text" name="fullname" value="{{ current_user.fullname }}"/>
     <input type="text" name="email" value="{{ current_user.email }}"/>
