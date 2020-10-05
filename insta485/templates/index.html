@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 {% block main %}
-{% for post in posts %}
-  <!-- Create context variables for a single post card -->
-  {% with likes = all_likes[post.postid], comments = all_comments[post.postid] %}
-    {% include 'post_card.html' %}
-  {% endwith %}
-{% endfor %}
+<div id="reactEntry">
+  Loading...
+</div>
+<script type="text/javascript"
+        src="{{ url_for('static', filename='js/bundle.js') }}"></script>
 {% endblock %}
