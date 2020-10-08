@@ -73,12 +73,7 @@ def add_comment(post_id):
     """Add a comment to the post with ID <post_id>."""
     connection = insta485.model.get_db()
 
-    post_exists = connection.execute(
-        "SELECT postid FROM posts WHERE postid = ? ",
-        (post_id,)
-    ).fetchone() is not None
-    if not post_exists:
-        api_error(404)
+    confirm_post_exists(post_id)
 
     if flask.request.json is None or "text" not in flask.request.json:
         api_error(400)

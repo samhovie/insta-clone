@@ -3,17 +3,27 @@ from functools import wraps
 
 import flask
 import insta485
-from insta485.views.utils import get_current_user, remove_comment, add_comment
+from insta485.views.utils import get_current_user
 
 
-def api_error(code, additional_data={}):
+add_comment = insta485.views.utils.add_comment
+remove_comment = insta485.views.utils.remove_comment
+
+
+def api_error(code, additional_data=None):
     """Abort with a REST API-compatible error and status code <code>."""
     messages = {
         403: "Unauthorized",
         404: "Not Found",
         409: "Conflict",
     }
-    response = flask.jsonify(message=messages[code], status_code=code, **additional_data)
+    if additional_data is None:
+        additional_data = {}
+    response = flask.jsonify(
+        message=messages[code],
+        status_code=code,
+        **additional_data
+    )
     response.status_code = code
     flask.abort(response)
 
@@ -23,8 +33,8 @@ def like_post(username, post_id):
     connection = insta485.model.get_db()
 
     like = connection.execute(
-        "SELECT * FROM likes "
-        "WHERE owner = ? AND postid = ?;",
+        " SELECT * FROM likes "
+        " WHERE owner = ? AND postid = ?;",
         (username, post_id)
     ).fetchone()
 
@@ -32,8 +42,8 @@ def like_post(username, post_id):
         return False
 
     connection.execute(
-        "INSERT INTO likes (owner, postid) "
-        "VALUES (?, ?);",
+        " INSERT INTO likes (owner, postid) "
+        " VALUES (?, ?);",
         (username, post_id)
     )
     return True
@@ -43,8 +53,8 @@ def unlike_post(username, post_id):
     """Remove entry for username liking post_id in likes."""
     connection = insta485.model.get_db()
     connection.execute(
-        "DELETE FROM likes "
-        "WHERE owner = ? AND postid = ?;",
+        " DELETE FROM likes "
+        " WHERE owner = ? AND postid = ?;",
         (username, post_id)
     )
 
@@ -59,7 +69,9 @@ def requires_login(route):
 
     return with_login_required
 
+
 def confirm_post_exists(post_id):
+    """Confirm that a post with ID <post_id> exists."""
     connection = insta485.model.get_db()
     post_exists = connection.execute(
         "SELECT postid FROM posts WHERE postid = ? ",
