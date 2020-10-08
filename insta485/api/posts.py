@@ -1,7 +1,7 @@
 """REST API for getting information about posts."""
 import flask
 import insta485
-from insta485.api.utils import requires_login, get_current_user
+from insta485.api.utils import api_error, requires_login, get_current_user
 
 
 @insta485.app.route('/api/v1/p/', methods=['GET'])
@@ -83,6 +83,9 @@ def get_post(post_id):
         "WHERE posts.postid = ? ",
         (post_id,)
     ).fetchone()
+
+    if post_sql is None:
+        api_error(404)
 
     post = {
         "age": post_sql["created"],
