@@ -1,7 +1,12 @@
 """REST API for comments."""
 import flask
 import insta485
-from insta485.api.utils import api_error, requires_login, get_current_user
+from insta485.api.utils import (
+    confirm_post_exists,
+    api_error,
+    requires_login,
+    get_current_user,
+)
 
 
 @insta485.app.route('/api/v1/p/<int:post_id>/comments/', methods=['GET'])
@@ -39,12 +44,7 @@ def get_comments(post_id):
     """
     connection = insta485.model.get_db()
 
-    post_exists = connection.execute(
-        "SELECT postid FROM posts WHERE postid = ? ",
-        (post_id,)
-    ).fetchone() is not None
-    if not post_exists:
-        api_error(404)
+    confirm_post_exists(post_id)
 
     comments_sql = connection.execute(
         "SELECT commentid, owner, text FROM comments "

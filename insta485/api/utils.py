@@ -2,6 +2,7 @@
 from functools import wraps
 
 import flask
+import insta485
 from insta485.views.utils import get_current_user, remove_comment, add_comment
 
 
@@ -55,3 +56,12 @@ def requires_login(route):
         return route(*args, **kwargs)
 
     return with_login_required
+
+def confirm_post_exists(post_id):
+    connection = insta485.model.get_db()
+    post_exists = connection.execute(
+        "SELECT postid FROM posts WHERE postid = ? ",
+        (post_id,)
+    ).fetchone() is not None
+    if not post_exists:
+        api_error(404)

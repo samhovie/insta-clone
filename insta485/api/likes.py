@@ -3,6 +3,7 @@ import flask
 import insta485
 from insta485.api.utils import (
     api_error,
+    confirm_post_exists,
     get_current_user,
     like_post,
     requires_login,
@@ -26,12 +27,7 @@ def get_likes(post_id):
     connection = insta485.model.get_db()
     current_user = get_current_user()
 
-    post_exists = connection.execute(
-        "SELECT postid FROM posts WHERE postid = ? ",
-        (post_id,)
-    ).fetchone() is not None
-    if not post_exists:
-        api_error(404)
+    confirm_post_exists(post_id)
 
     num_likes = connection.execute(
         "SELECT COUNT(*) FROM likes "
@@ -65,4 +61,6 @@ def add_like(post_id):
 @requires_login
 def remove_like(post_id):
     """Remove a like from the post with ID <post_id>."""
-    return "Hello from post with ID " + post_id
+    confirm_post_exists(post_id)
+    unlike_post(get_current_user()["username"], post_id)
+    return flask.jsonify({}), 204
