@@ -37,7 +37,7 @@ def get_posts():
     page = flask.request.args.get("page", default=0, type=int)
     page = page if page >= 0 else 0
 
-    limit = size
+    limit = size + 1
     offset = page * size
 
     connection = insta485.model.get_db()
@@ -51,13 +51,20 @@ def get_posts():
         "LIMIT ? offset ? ",
         (current_user["username"], current_user["username"], limit, offset)
     ).fetchall()
+    more_posts = (len(posts_sql) == limit)
+    if more_posts:
+        posts_sql.pop()
 
     posts = list(map(lambda post_sql: {
         "postid": int(post_sql["postid"]),
         "url": flask.url_for("get_post", post_id=int(post_sql["postid"])),
     }, posts_sql))
 
-    return flask.jsonify(posts)
+    next_url = ""
+    if more_posts:
+        next_url = flask.url_for("get_posts", size=size, page=page + 1)
+
+    return flask.jsonify(next=next_url, results=posts, url=flask.request.path)
 
 
 @insta485.app.route('/api/v1/p/<int:post_id>/', methods=['GET'])
