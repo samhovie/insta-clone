@@ -4,6 +4,7 @@ from functools import wraps
 import flask
 from insta485.views.utils import get_current_user
 
+
 def requires_login(route):
     """Change route so it raises a 403 if no user is authenticated."""
     @wraps(route)
