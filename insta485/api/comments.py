@@ -71,5 +71,38 @@ def get_comments(post_id):
 @requires_login
 def add_comment(post_id):
     """Add a comment to the post with ID <post_id>."""
+    connection = insta485.model.get_db()
+
+    post_exists = connection.execute(
+        "SELECT postid FROM posts WHERE postid = ? ",
+        (post_id,)
+    ).fetchone() is not None
+    if not post_exists:
+        api_error(404)
+
+    if flask.request.json is None or "text" not in flask.request.json:
+        api_error(400)
+
     current_user = get_current_user()
-    return f"Hello from post with ID {post_id} and user {current_user}"
+    insta485.api.utils.add_comment(
+        current_user["username"],
+        post_id,
+        flask.request.json["text"]
+    )
+
+    comment_id = connection.execute(
+        "SELECT last_insert_rowid() AS comment_id FROM comments "
+    ).fetchone()["comment_id"]
+
+    comment = {
+        "commentid": int(comment_id),
+        "owner": current_user["username"],
+        "owner_show_url": flask.url_for(
+            "show_profile",
+            user_id=current_user["username"]
+        ),
+        "postid": post_id,
+        "text": flask.request.json["text"],
+    }
+
+    return flask.jsonify(**comment), 201

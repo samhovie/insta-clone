@@ -2,7 +2,7 @@
 from functools import wraps
 
 import flask
-from insta485.views.utils import get_current_user
+from insta485.views.utils import get_current_user, remove_comment, add_comment
 
 
 def api_error(code):
