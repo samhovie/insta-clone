@@ -6,13 +6,14 @@ import insta485
 from insta485.views.utils import get_current_user, remove_comment, add_comment
 
 
-def api_error(code):
+def api_error(code, additional_data={}):
     """Abort with a REST API-compatible error and status code <code>."""
     messages = {
         403: "Unauthorized",
         404: "Not Found",
+        409: "Conflict",
     }
-    response = flask.jsonify(message=messages[code], status_code=code)
+    response = flask.jsonify(message=messages[code], status_code=code, **additional_data)
     response.status_code = code
     flask.abort(response)
 
@@ -28,13 +29,14 @@ def like_post(username, post_id):
     ).fetchone()
 
     if like is not None:
-        return
+        return False
 
     connection.execute(
         "INSERT INTO likes (owner, postid) "
         "VALUES (?, ?);",
         (username, post_id)
     )
+    return True
 
 
 def unlike_post(username, post_id):

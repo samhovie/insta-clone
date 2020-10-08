@@ -54,7 +54,18 @@ def get_likes(post_id):
 @requires_login
 def add_like(post_id):
     """Add a like to the post with ID <post_id>."""
-    return "Hello from post with ID " + post_id
+    confirm_post_exists(post_id)
+
+    current_user = get_current_user()
+
+    result = {
+        "logname": current_user["username"],
+        "postid": post_id,
+    }
+
+    if not like_post(current_user["username"], post_id):
+        api_error(409, result)
+    return flask.jsonify(**result), 201
 
 
 @insta485.app.route('/api/v1/p/<int:post_id>/likes/', methods=['DELETE'])
