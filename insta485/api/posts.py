@@ -54,14 +54,55 @@ def get_posts():
 
     posts = list(map(lambda post_sql: {
         "postid": int(post_sql["postid"]),
-        "url": flask.url_for("get_post", postid=int(post_sql["postid"])),
+        "url": flask.url_for("get_post", post_id=int(post_sql["postid"])),
     }, posts_sql))
 
     return flask.jsonify(posts)
 
 
-@insta485.app.route('/api/v1/p/<int:postid>', methods=['GET'])
+@insta485.app.route('/api/v1/p/<int:post_id>/', methods=['GET'])
 @requires_login
-def get_post(postid):
-    """Return information about the post with ID <postid>."""
-    return f"TODO: Post with id {postid} here"
+def get_post(post_id):
+    """Return information about the post with ID <post_id>.
+
+    Example:
+    {
+      "age": "2017-09-28 04:33:28",
+      "img_url": "/uploads/9887e06812ef434d291e4936417d125cd594b38a.jpg",
+      "owner": "awdeorio",
+      "owner_img_url": "/uploads/e1a7c5c32973862ee15173b0259e3efdb6a391af.jpg",
+      "owner_show_url": "/u/awdeorio/",
+      "post_show_url": "/p/3/",
+      "url": "/api/v1/p/3/"
+    }
+    """
+    connection = insta485.model.get_db()
+    post_sql = connection.execute(
+        "SELECT posts.*, users.filename AS owner_filename FROM posts "
+        "INNER JOIN users on users.username = posts.owner "
+        "WHERE posts.postid = ? ",
+        (post_id,)
+    ).fetchone()
+
+    post = {
+        "age": post_sql["created"],
+        "img_url": flask.url_for(
+            "show_upload",
+            path=post_sql["filename"]
+        ),
+        "owner": post_sql["owner"],
+        "owner_img_url": flask.url_for(
+            "show_upload",
+            path=post_sql["owner_filename"]
+        ),
+        "owner_show_url": flask.url_for(
+            "show_profile",
+            user_id=post_sql["owner"]
+        ),
+        "post_show_url": flask.url_for(
+            "show_post",
+            post_id=post_id
+        ),
+        "url": flask.url_for("get_post", post_id=post_id),
+    }
+    return flask.jsonify(**post)
