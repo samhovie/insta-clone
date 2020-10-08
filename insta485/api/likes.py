@@ -1,10 +1,16 @@
 """REST API for likes."""
 import flask
 import insta485
-from insta485.api.utils import requires_login
+from insta485.api.utils import (
+    api_error,
+    get_current_user,
+    like_post,
+    requires_login,
+    unlike_post,
+)
 
 
-@insta485.app.route('/api/v1/p/<int:postid_url_slug>/likes/', methods=['GET'])
+@insta485.app.route('/api/v1/p/<int:post_id>/likes/', methods=['GET'])
 @requires_login
 def get_likes(post_id):
     """Return likes on the post with ID <post_id>.
@@ -17,9 +23,31 @@ def get_likes(post_id):
       "url": "/api/v1/p/1/likes/"
     }
     """
+    connection = insta485.model.get_db()
+    current_user = get_current_user()
+
+    post_exists = connection.execute(
+        "SELECT postid FROM posts WHERE postid = ? ",
+        (post_id,)
+    ).fetchone() is not None
+    if not post_exists:
+        api_error(404)
+
+    num_likes = connection.execute(
+        "SELECT COUNT(*) FROM likes "
+        "WHERE postid = ? ",
+        (post_id,)
+    ).fetchone()["COUNT(*)"]
+
+    logname_likes_this = connection.execute(
+        "SELECT * FROM likes "
+        "WHERE owner = ? AND postid = ?;",
+        (current_user["username"], post_id)
+    ).fetchone() is not None
+
     context = {
-        "logname_likes_this": 1,
-        "likes_count": 3,
+        "logname_likes_this": int(logname_likes_this),
+        "likes_count": num_likes,
         "postid": post_id,
         "url": flask.request.path,
     }

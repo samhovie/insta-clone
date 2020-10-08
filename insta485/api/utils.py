@@ -16,6 +16,36 @@ def api_error(code):
     flask.abort(response)
 
 
+def like_post(username, post_id):
+    """Create entry for username liking post_id in likes."""
+    connection = insta485.model.get_db()
+
+    like = connection.execute(
+        "SELECT * FROM likes "
+        "WHERE owner = ? AND postid = ?;",
+        (username, post_id)
+    ).fetchone()
+
+    if like is not None:
+        return
+
+    connection.execute(
+        "INSERT INTO likes (owner, postid) "
+        "VALUES (?, ?);",
+        (username, post_id)
+    )
+
+
+def unlike_post(username, post_id):
+    """Remove entry for username liking post_id in likes."""
+    connection = insta485.model.get_db()
+    connection.execute(
+        "DELETE FROM likes "
+        "WHERE owner = ? AND postid = ?;",
+        (username, post_id)
+    )
+
+
 def requires_login(route):
     """Change route so it raises a 403 if no user is authenticated."""
     @wraps(route)
