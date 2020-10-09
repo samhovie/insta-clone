@@ -32,10 +32,10 @@ def get_posts():
     current_user = get_current_user()
 
     size = flask.request.args.get("size", default=10, type=int)
-    size = size if size >= 0 else 0
-
     page = flask.request.args.get("page", default=0, type=int)
-    page = page if page >= 0 else 0
+
+    if size < 0 or page < 0:
+        api_error(400)
 
     limit = size + 1
     offset = page * size
