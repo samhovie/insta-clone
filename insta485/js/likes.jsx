@@ -84,7 +84,6 @@ class Likes extends React.Component {
 
 Likes.propTypes = {
   url: PropTypes.string.isRequired,
-  url: PropTypes.bool.isRequired,
 };
 
 export default Likes;
