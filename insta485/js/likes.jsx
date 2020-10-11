@@ -3,13 +3,22 @@ import PropTypes from 'prop-types';
 
 class Likes extends React.Component {
   /* Display number of likes and like/unlike button for one post
-   * Reference on forms https://facebook.github.io/react/docs/forms.html
+   * 
+   * Props:
+   * - url for api endpoint for like data
+   * 
+   * State:
+   * - post_id
+   * - numLikes
+   * - userDidLike
    */
 
   constructor(props) {
-    // Initialize mutable state
     super(props);
-    this.state = { numLikes: 0 };
+    this.state = {
+      num_likes: 0,
+      user_likes_post: false,
+    };
   }
 
   componentDidMount() {
@@ -17,32 +26,57 @@ class Likes extends React.Component {
     const { url } = this.props;
 
     // Call REST API to get number of likes
-    fetch(url, { credentials: 'same-origin' })
+    fetch(url, { credentials: 'same-origin', method: 'GET' })
       .then((response) => {
         if (!response.ok) throw Error(response.statusText);
         return response.json();
       })
       .then((data) => {
         this.setState({
-          numLikes: data.likes_count,
+          num_likes: data.likes_count,
+          user_likes_post: data.logname_likes_this === 1,
         });
       })
       .catch((error) => console.log(error));
   }
 
+  toggleLike() {
+    const { url } = this.props;
+    const num_likes = this.state.num_likes;
+    const user_likes_post = this.state.user_likes_post;
+    const method = user_likes_post ? 'DELETE' : 'POST';
+    
+    // Add/remove like
+    fetch(url, { credentials: 'same-origin', method: method })
+    .then((response) => {
+      if (!response.ok) throw Error(response.statusText);
+    })
+    .catch((error) => console.log(error));
+
+    // Update state
+    this.setState({
+      num_likes: (user_likes_post) ? (num_likes - 1) : (num_likes + 1),
+      user_likes_post: !user_likes_post,
+    });
+  }
+
   render() {
     // This line automatically assigns this.state.numLikes to the const variable numLikes
-    const { numLikes } = this.state;
-
+    const { num_likes } = this.state;
+    const { user_likes_post } = this.state;
+    
     // Render number of likes
     return (
       <div className="likes">
         <p>
-          {numLikes}
+          {num_likes}
           {' '}
-          like
-          {numLikes !== 1 ? 's' : ''}
+          {num_likes !== 1 ? 'likes' : 'like'}
         </p>
+
+        <button className="like-unlike-button" onClick={() => this.toggleLike()}>
+          {user_likes_post ? 'unlike' : 'like'}
+        </button>
       </div>
     );
   }
@@ -50,6 +84,7 @@ class Likes extends React.Component {
 
 Likes.propTypes = {
   url: PropTypes.string.isRequired,
+  url: PropTypes.bool.isRequired,
 };
 
 export default Likes;
