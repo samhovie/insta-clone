@@ -18,7 +18,6 @@ from insta485.views.utils import (
 def show_index():
     """Display / route."""
     # Connect to database
-    connection = insta485.model.get_db()
     current_user = get_current_user()
 
     # Render home page template
