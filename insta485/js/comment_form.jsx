@@ -48,7 +48,7 @@ class CommentForm extends React.Component {
           value={value}
           onChange={(event) => this.handleChange(event)}
         />
-        <input type="submit" />
+        <input type="submit" style={{visibility: 'hidden'}}/>
       </form>
     );
   }
