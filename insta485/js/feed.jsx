@@ -4,11 +4,13 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import Post from './post';
 
 class Feed extends React.Component {
-
-  /* 
+  /*
     Props:
     - url for rest api to retrieve post info
-  
+
+    State:
+    - next url to retrieve posts from
+    - posts list containing post_ids and post urls
   */
 
   constructor(props) {
@@ -22,13 +24,13 @@ class Feed extends React.Component {
 
   componentDidMount() {
     const { url } = this.props;
-    const [ navigation ]  = performance.getEntriesByType("navigation");
+    const [navigation] = performance.getEntriesByType('navigation');
     console.log(navigation);
 
-    if (navigation.type !== 'reload' && history.state !== null) {
-      this.setState(history.state);
+    if (navigation.type !== 'reload' && window.history.state !== null) {
+      this.setState(window.history.state);
     } else {
-      fetch(url, { credentials: 'same-origin', method: 'GET'})
+      fetch(url, { credentials: 'same-origin', method: 'GET' })
         .then((response) => {
           if (!response.ok) throw Error(response.statusText);
           return response.json();
@@ -37,7 +39,7 @@ class Feed extends React.Component {
           this.setState({
             next: data.next,
             posts: data.results,
-          })
+          });
         })
         .catch((error) => console.log(error));
     }
@@ -48,7 +50,7 @@ class Feed extends React.Component {
 
     if (next === '') return;
 
-    fetch(next, { credentials: 'same-origin', method: 'GET'})
+    fetch(next, { credentials: 'same-origin', method: 'GET' })
       .then((response) => {
         if (!response.ok) throw Error(response.statusText);
         return response.json();
@@ -59,10 +61,10 @@ class Feed extends React.Component {
           next: data.next,
           posts: newPosts,
         });
-        history.replaceState({
+        window.history.replaceState({
           next: data.next,
           posts: newPosts,
-        }, "");
+        }, '');
       })
       .catch((error) => console.log(error));
   }
@@ -75,21 +77,19 @@ class Feed extends React.Component {
 
     return (
       <InfiniteScroll
-        dataLength={postItems.length} //This is important field to render the next data
+        dataLength={postItems.length}
         next={this.fetchPosts}
         hasMore={next !== ''}
         loader={<h4>Loading...</h4>}
-        endMessage={
-          <p style={{ textAlign: 'center' }}>
-            <b>Yay! You have seen it all</b>
-          </p>
-        }
       >
         {postItems}
       </InfiniteScroll>
     );
   }
-
 }
+
+Feed.propTypes = {
+  url: PropTypes.string.isRequired,
+};
 
 export default Feed;
