@@ -14,6 +14,7 @@ set -x
 pycodestyle insta485
 pydocstyle insta485
 pylint --disable=cyclic-import insta485
+npx eslint --ext jsx insta485/js/
 
 # Unit tests
 pytest -v tests
