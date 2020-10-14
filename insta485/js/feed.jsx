@@ -22,19 +22,25 @@ class Feed extends React.Component {
 
   componentDidMount() {
     const { url } = this.props;
-    
-    fetch(url, { credentials: 'same-origin', method: 'GET'})
-      .then((response) => {
-        if (!response.ok) throw Error(response.statusText);
-        return response.json();
-      })
-      .then((data) => {
-        this.setState({
-          next: data.next,
-          posts: data.results,
+    const [ navigation ]  = performance.getEntriesByType("navigation");
+    console.log(navigation);
+
+    if (navigation.type !== 'reload' && history.state !== null) {
+      this.setState(history.state);
+    } else {
+      fetch(url, { credentials: 'same-origin', method: 'GET'})
+        .then((response) => {
+          if (!response.ok) throw Error(response.statusText);
+          return response.json();
         })
-      })
-      .catch((error) => console.log(error));
+        .then((data) => {
+          this.setState({
+            next: data.next,
+            posts: data.results,
+          })
+        })
+        .catch((error) => console.log(error));
+    }
   }
 
   fetchPosts() {
@@ -52,7 +58,11 @@ class Feed extends React.Component {
         this.setState({
           next: data.next,
           posts: newPosts,
-        })
+        });
+        history.replaceState({
+          next: data.next,
+          posts: newPosts,
+        }, "");
       })
       .catch((error) => console.log(error));
   }
