@@ -24,7 +24,7 @@ from insta485.views.utils import (
 def show_profile(user_id):
     """Display /u/<user_id>/ route."""
     # Connect to db
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
     current_user = get_current_user()
 
     # Handle POST requests
@@ -40,42 +40,47 @@ def show_profile(user_id):
             create_post(current_user["username"], filename)
 
     # Retrieve user data if user exists
-    profile_user = connection.execute(
+    cursor.execute(
         "SELECT username, fullname, email, filename FROM users "
-        "WHERE username = ?;",
+        "WHERE username = %s;",
         (user_id,)
-    ).fetchone()
+    )
+    profile_user = cursor.fetchone()
     if profile_user is None:
         flask.abort(404)
 
     # Retrieve follower and following count
-    num_followers = connection.execute(
+    cursor.execute(
         "SELECT COUNT(*) as count FROM following "
-        "WHERE username2 = ?;",
+        "WHERE username2 = %s;",
         (user_id,)
-    ).fetchone()
-    num_following = connection.execute(
+    )
+    num_followers = cursor.fetchone()
+    cursor.execute(
         "SELECT COUNT(*) as count FROM following "
-        "WHERE username1 = ?;",
+        "WHERE username1 = %s;",
         (user_id,)
-    ).fetchone()
+    )
+    num_following = cursor.fetchone()
 
     # Check if current user follows profile user
-    relationship = connection.execute(
+    cursor.execute(
         "SELECT * FROM following "
-        "WHERE username1 = ? "
-        "AND username2 = ?;",
+        "WHERE username1 = %s "
+        "AND username2 = %s;",
         (current_user["username"], user_id)
-    ).fetchone()
+    )
+    relationship = cursor.fetchone()
     current_user_is_following = relationship is not None
 
     # Retrieve posts for user
-    posts = connection.execute(
+    cursor.execute(
         "SELECT postid, filename FROM posts "
-        "WHERE owner = ? "
+        "WHERE owner = %s "
         "ORDER BY created, postid;",
         (user_id,)
-    ).fetchall()
+    )
+    posts = cursor.fetchall()
 
     context = {
         "profile_user": profile_user,
@@ -92,7 +97,7 @@ def show_profile(user_id):
 @requires_login
 def show_followers(user_id):
     """Display /u/<user_id>/followers/ route."""
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
     current_user = get_current_user()
 
     if flask.request.method == 'POST':
@@ -109,21 +114,23 @@ def show_followers(user_id):
             )
 
     # followers following me
-    followers = connection.execute(
+    cursor.execute(
         "SELECT users.username, users.filename "
         "FROM users INNER JOIN following ON "
         " users.username = following.username1 "
-        "WHERE following.username2 = ? ",
+        "WHERE following.username2 = %s ",
         (user_id,)
-    ).fetchall()
+    )
+    followers = cursor.fetchall()
 
     # who I follow
-    following = connection.execute(
+    cursor.execute(
         "SELECT users.username, users.filename FROM users "
         " INNER JOIN following ON users.username = following.username2 "
-        "WHERE following.username1 = ?",
+        "WHERE following.username1 = %s",
         (current_user['username'],)
-    ).fetchall()
+    )
+    following = cursor.fetchall()
     following = list(map(lambda user: user['username'], following))
 
     # check if I follow each person that follows me
@@ -149,7 +156,7 @@ def show_followers(user_id):
 @requires_login
 def show_following(user_id):
     """Display /u/<user_id>/following/ route."""
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
     current_user = get_current_user()
 
     if flask.request.method == 'POST':
@@ -166,21 +173,23 @@ def show_following(user_id):
             )
 
     # followers following me
-    profile_following = connection.execute(
+    cursor.execute(
         "SELECT users.username, users.filename FROM users "
         " INNER JOIN following ON users.username = following.username2 "
-        "WHERE following.username1 = ? ",
+        "WHERE following.username1 = %s ",
         (user_id,)
-    ).fetchall()
+    )
+    profile_following = cursor.fetchall()
 
     # who I follow
-    current_u_following = connection.execute(
+    cursor.execute(
         "SELECT users.username, users.filename "
         "FROM users INNER JOIN following ON "
         "users.username = following.username2 "
-        "WHERE following.username1 = ?",
+        "WHERE following.username1 = %s",
         (current_user['username'],)
-    ).fetchall()
+    )
+    current_u_following = cursor.fetchall()
     current_u_following = list(map(
         lambda user: user['username'], current_u_following
     ))

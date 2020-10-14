@@ -19,7 +19,7 @@ from insta485.views.utils import (
 def show_explore():
     """Display /explore/ route."""
     # if 'username' in flask.session:
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
     current_user = get_current_user()
 
     # context = {}
@@ -28,14 +28,13 @@ def show_explore():
             add_follower(current_user['username'],
                          flask.request.form['username'])
 
-    not_following = connection.execute(
-
+    cursor.execute(
         "SELECT * FROM users "
         "WHERE username NOT IN (SELECT username2 "
-        "FROM following WHERE username1 = ? ) AND username != ?;",
+        "FROM following WHERE username1 = %s ) AND username != %s;",
         (current_user['username'], current_user['username'])
-
     )
+    not_following = cursor.fetchall()
 
     context = {'logname': current_user['username'],
                'current_user': current_user,

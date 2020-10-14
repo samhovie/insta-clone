@@ -23,6 +23,7 @@ setup(
         'pytest',
         'requests',
         'selenium',
+        'psycopg2-binary',
     ],
     python_requires='>=3.6',
 )

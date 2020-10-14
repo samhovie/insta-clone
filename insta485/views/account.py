@@ -81,20 +81,20 @@ def show_delete():
     """Display /accounts/delete/ route."""
     current_user = get_current_user()
     if flask.request.method == "POST":
-        connection = insta485.model.get_db()
+        cursor = insta485.model.get_db()
 
         # Delete all post images, and delete the profile picture.
-        cur = connection.execute(
-            "SELECT filename FROM posts WHERE owner = ?",
+        cursor.execute(
+            "SELECT filename FROM posts WHERE owner = %s",
             (current_user["username"],)
         )
-        for post in cur.fetchall():
+        for post in cursor.fetchall():
             delete_upload(post["filename"])
         delete_upload(current_user["filename"])
 
         # Delete the database entries.
-        connection.execute(
-            "DELETE FROM users WHERE username = ?",
+        cursor.execute(
+            "DELETE FROM users WHERE username = %s",
             (current_user["username"],)
         )
 
@@ -147,9 +147,9 @@ def show_password():
             flask.abort(401)
 
         new_hash = create_hash(new_password1)
-        connection = insta485.model.get_db()
-        connection.execute(
-            "UPDATE users SET password = ? WHERE username = ?",
+        cursor = insta485.model.get_db()
+        cursor.execute(
+            "UPDATE users SET password = %s WHERE username = %s",
             (new_hash, current_user["username"])
         )
         return flask.redirect(flask.url_for("show_edit"))

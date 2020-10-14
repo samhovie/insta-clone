@@ -40,17 +40,18 @@ def get_posts():
     limit = size + 1
     offset = page * size
 
-    connection = insta485.model.get_db()
-    posts_sql = connection.execute(
+    cursor = insta485.model.get_db()
+    cursor.execute(
         "SELECT posts.postid FROM posts "
         "INNER JOIN users on users.username = posts.owner "
-        "WHERE posts.owner = ? "
+        "WHERE posts.owner = %s "
         "OR posts.owner IN "
-        "    (SELECT username2 FROM following WHERE username1 = ?) "
+        "    (SELECT username2 FROM following WHERE username1 = %s) "
         "ORDER BY posts.postid DESC "
-        "LIMIT ? offset ? ",
+        "LIMIT %s offset %s ",
         (current_user["username"], current_user["username"], limit, offset)
-    ).fetchall()
+    )
+    posts_sql = cursor.fetchall()
     more_posts = (len(posts_sql) == limit)
     if more_posts:
         posts_sql.pop()
@@ -83,13 +84,14 @@ def get_post(post_id):
       "url": "/api/v1/p/3/"
     }
     """
-    connection = insta485.model.get_db()
-    post_sql = connection.execute(
+    cursor = insta485.model.get_db()
+    cursor.execute(
         "SELECT posts.*, users.filename AS owner_filename FROM posts "
         "INNER JOIN users on users.username = posts.owner "
-        "WHERE posts.postid = ? ",
+        "WHERE posts.postid = %s ",
         (post_id,)
-    ).fetchone()
+    )
+    post_sql = cursor.fetchone()
 
     if post_sql is None:
         api_error(404)

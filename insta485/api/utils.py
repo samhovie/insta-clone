@@ -30,20 +30,21 @@ def api_error(code, additional_data=None):
 
 def like_post(username, post_id):
     """Create entry for username liking post_id in likes."""
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
 
-    like = connection.execute(
+    cursor.execute(
         " SELECT * FROM likes "
-        " WHERE owner = ? AND postid = ?;",
+        " WHERE owner = %s AND postid = %s;",
         (username, post_id)
-    ).fetchone()
+    )
+    like = cursor.fetchone()
 
     if like is not None:
         return False
 
-    connection.execute(
+    cursor.execute(
         " INSERT INTO likes (owner, postid) "
-        " VALUES (?, ?);",
+        " VALUES (%s, %s);",
         (username, post_id)
     )
     return True
@@ -51,10 +52,10 @@ def like_post(username, post_id):
 
 def unlike_post(username, post_id):
     """Remove entry for username liking post_id in likes."""
-    connection = insta485.model.get_db()
-    connection.execute(
+    cursor = insta485.model.get_db()
+    cursor.execute(
         " DELETE FROM likes "
-        " WHERE owner = ? AND postid = ?;",
+        " WHERE owner = %s AND postid = %s;",
         (username, post_id)
     )
 
@@ -72,10 +73,11 @@ def requires_login(route):
 
 def confirm_post_exists(post_id):
     """Confirm that a post with ID <post_id> exists."""
-    connection = insta485.model.get_db()
-    post_exists = connection.execute(
-        "SELECT postid FROM posts WHERE postid = ? ",
+    cursor = insta485.model.get_db()
+    cursor.execute(
+        "SELECT postid FROM posts WHERE postid = %s ",
         (post_id,)
-    ).fetchone() is not None
+    )
+    post_exists = cursor.fetchone() is not None
     if not post_exists:
         api_error(404)

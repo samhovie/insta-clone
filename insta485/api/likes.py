@@ -24,22 +24,24 @@ def get_likes(post_id):
       "url": "/api/v1/p/1/likes/"
     }
     """
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
     current_user = get_current_user()
 
     confirm_post_exists(post_id)
 
-    num_likes = connection.execute(
-        "SELECT COUNT(*) FROM likes "
-        "WHERE postid = ? ",
+    cursor.execute(
+        "SELECT COUNT(*) AS the_count FROM likes "
+        "WHERE postid = %s ",
         (post_id,)
-    ).fetchone()["COUNT(*)"]
+    )
+    num_likes = cursor.fetchone()["the_count"]
 
-    logname_likes_this = connection.execute(
+    cursor.execute(
         "SELECT * FROM likes "
-        "WHERE owner = ? AND postid = ?;",
+        "WHERE owner = %s AND postid = %s;",
         (current_user["username"], post_id)
-    ).fetchone() is not None
+    )
+    logname_likes_this = cursor.fetchone() is not None
 
     context = {
         "logname_likes_this": int(logname_likes_this),

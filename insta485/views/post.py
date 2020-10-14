@@ -22,7 +22,7 @@ from insta485.views.utils import (
 def show_post(post_id):
     """Display /p/<post id>/ route."""
     # Connect to database
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
     current_user = get_current_user()
 
     # Handle POST requests for submitting likes, unlikes and comments, and
@@ -41,35 +41,38 @@ def show_post(post_id):
             like_unlike_or_comment(current_user)
 
     # Post will contain postid, filename, owner, created, poster_filename
-    post = connection.execute(
+    cursor.execute(
         "SELECT posts.*, users.filename as poster_filename FROM posts "
         "INNER JOIN users on users.username = posts.owner "
-        "WHERE postid = ?;",
+        "WHERE postid = %s;",
         (post_id)
-    ).fetchone()
+    )
+    post = cursor.fetchone()
     if post is None:
         flask.abort(404)
     # Humanize timestamp
     post["created"] = arrow.get(post["created"]).humanize()
 
     # Retrieve likes for post
-    likes = connection.execute(
+    cursor.execute(
         "SELECT owner FROM likes "
-        "WHERE postid = ?;",
+        "WHERE postid = %s;",
         (post_id)
-    ).fetchall()
+    )
+    likes = cursor.fetchall()
     # Convert likes to list of owners
     like_owners = []
     for like in likes:
         like_owners.append(like["owner"])
 
     # Retrieve comments for post
-    comments = connection.execute(
+    cursor.execute(
         "SELECT commentid, owner, text FROM comments "
-        "WHERE postid = ? "
+        "WHERE postid = %s "
         "ORDER BY created, commentid ASC;",
         (post_id)
     )
+    comments = cursor.fetchall()
 
     context = {
         'current_user': current_user,

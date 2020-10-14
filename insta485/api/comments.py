@@ -42,16 +42,17 @@ def get_comments(post_id):
       "url": "/api/v1/p/3/comments/"
     }
     """
-    connection = insta485.model.get_db()
 
     confirm_post_exists(post_id)
 
-    comments_sql = connection.execute(
+    cursor = insta485.model.get_db()
+    cursor.execute(
         "SELECT commentid, owner, text FROM comments "
-        "WHERE postid = ? "
+        "WHERE postid = %s "
         "ORDER BY commentid ASC ",
         (post_id,)
-    ).fetchall()
+    )
+    comments_sql = cursor.fetchall()
 
     comments = list(map(lambda comment_sql: {
         "commentid": int(comment_sql["commentid"]),
@@ -71,7 +72,7 @@ def get_comments(post_id):
 @requires_login
 def add_comment(post_id):
     """Add a comment to the post with ID <post_id>."""
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
 
     confirm_post_exists(post_id)
 
@@ -79,15 +80,11 @@ def add_comment(post_id):
         api_error(400)
 
     current_user = get_current_user()
-    insta485.api.utils.add_comment(
+    comment_id = insta485.api.utils.add_comment(
         current_user["username"],
         post_id,
         flask.request.json["text"]
     )
-
-    comment_id = connection.execute(
-        "SELECT last_insert_rowid() AS comment_id FROM comments "
-    ).fetchone()["comment_id"]
 
     comment = {
         "commentid": int(comment_id),

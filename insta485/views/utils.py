@@ -7,6 +7,8 @@ import uuid
 import flask
 import insta485
 
+# TODO TEMP:
+import sys
 
 def save_upload(fileobj):
     """Save the file to the uploads directory. Returns the filename."""
@@ -37,12 +39,12 @@ def create_hash(password):
 
 def verify_credentials(username, password):
     """Return whether a user with the given username and password exists."""
-    connection = insta485.model.get_db()
-    cur = connection.execute(
-        "SELECT password FROM users WHERE username = ?",
+    cursor = insta485.model.get_db()
+    cursor.execute(
+        "SELECT password FROM users WHERE username = %s",
         (username,)
     )
-    users = cur.fetchall()
+    users = cursor.fetchall()
 
     # No users were found with the username.
     if len(users) != 1:
@@ -56,14 +58,14 @@ def verify_credentials(username, password):
 
 def create_user(username, fullname, email, password, image_file):
     """Create a user with the given information."""
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
 
     # If a user with this username already exists, raise a conflict error.
-    cur = connection.execute(
-        "SELECT username FROM users WHERE username = ?",
+    cursor.execute(
+        "SELECT username FROM users WHERE username = %s",
         (username,)
     )
-    if len(cur.fetchall()) != 0:
+    if len(cursor.fetchall()) != 0:
         flask.abort(409)
 
     # If no password is provided, raise a bad request error.
@@ -72,7 +74,7 @@ def create_user(username, fullname, email, password, image_file):
 
     filename = save_upload(image_file)
 
-    connection.execute(
+    cursor.execute(
         "INSERT INTO users(username, fullname, email, filename, password)"
         "VALUES (:username, :fullname, :email, :filename, :password)",
         {
@@ -87,12 +89,12 @@ def create_user(username, fullname, email, password, image_file):
 
 def update_user(username, fullname, email, old_file_name, image_file):
     """Update the user with username to have the given information."""
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
 
     if image_file is not None:
         delete_upload(old_file_name)
         filename = save_upload(image_file)
-        connection.execute(
+        cursor.execute(
             "UPDATE users "
             "SET fullname = :fullname, email = :email, filename = :filename "
             "WHERE username = :username",
@@ -104,7 +106,7 @@ def update_user(username, fullname, email, old_file_name, image_file):
             }
         )
     else:
-        connection.execute(
+        cursor.execute(
             "UPDATE users "
             "SET fullname = :fullname, email = :email "
             "WHERE username = :username",
@@ -124,13 +126,13 @@ def get_current_user():
     """
     if "username" not in flask.session or "user_created" not in flask.session:
         return None
-    connection = insta485.model.get_db()
-    cur = connection.execute(
+    cursor = insta485.model.get_db()
+    cursor.execute(
         "SELECT username, fullname, email, filename FROM users "
-        "WHERE username = ? AND created = ?",
+        "WHERE username = %s AND created = %s",
         (flask.session["username"], flask.session["user_created"])
     )
-    users = cur.fetchall()
+    users = cursor.fetchall()
     if len(users) != 1:
         del flask.session["username"]
         del flask.session["user_created"]
@@ -140,16 +142,16 @@ def get_current_user():
 
 def login(username):
     """Set cookies such that the current user is logged in as `username`."""
-    connection = insta485.model.get_db()
-    cur = connection.execute(
-        "SELECT created FROM users WHERE username = ?",
+    cursor = insta485.model.get_db()
+    cursor.execute(
+        "SELECT created FROM users WHERE username = %s",
         (username,)
     )
-    users = cur.fetchall()
+    users = cursor.fetchall()
     if len(users) != 1:
         flask.abort(500)
     flask.session["username"] = username
-    flask.session["user_created"] = users[0]["created"]
+    flask.session["user_created"] = str(users[0]["created"])
 
 
 def logout():
@@ -171,33 +173,34 @@ def requires_login(route):
 
 def create_post(username, filename):
     """Create post entry for username."""
-    connection = insta485.model.get_db()
-    connection.execute(
+    cursor = insta485.model.get_db()
+    cursor.execute(
         "INSERT INTO posts (owner, filename) "
-        "VALUES (?, ?);",
+        "VALUES (%s, %s);",
         (username, filename)
     )
 
 
 def remove_post(username, post_id):
     """Remove post_id if username is post owner."""
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
 
     # Check if post exists and is owned by username, and also get post filename
-    post_info = connection.execute(
+    cursor.execute(
         "SELECT owner, filename FROM posts "
-        "WHERE postid = ?;",
+        "WHERE postid = %s;",
         (post_id)
-    ).fetchone()
+    )
+    post_info = cursor.fetchone()
     if post_info is None:
         flask.abort(404)
     elif username != post_info["owner"]:
         flask.abort(403)
 
     # Post exists and username owns it so delete all information for it
-    connection.execute(
+    cursor.execute(
         "DELETE FROM posts "
-        "WHERE postid = ?;",
+        "WHERE postid = %s;",
         (post_id)
     )
     delete_upload(post_info["filename"])
@@ -205,95 +208,99 @@ def remove_post(username, post_id):
 
 def like_post(username, post_id):
     """Create entry for username liking post_id in likes."""
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
 
-    like = connection.execute(
+    cursor.execute(
         "SELECT * FROM likes "
-        "WHERE owner = ? AND postid = ?;",
+        "WHERE owner = %s AND postid = %s;",
         (username, post_id)
-    ).fetchone()
+    )
+    like = cursor.fetchone()
 
     if like is not None:
         flask.abort(400)
 
-    connection.execute(
+    cursor.execute(
         "INSERT INTO likes (owner, postid) "
-        "VALUES (?, ?);",
+        "VALUES (%s, %s);",
         (username, post_id)
     )
 
 
 def unlike_post(username, post_id):
     """Remove entry for username liking post_id in likes."""
-    connection = insta485.model.get_db()
-    connection.execute(
+    cursor = insta485.model.get_db()
+    cursor.execute(
         "DELETE FROM likes "
-        "WHERE owner = ? AND postid = ?;",
+        "WHERE owner = %s AND postid = %s;",
         (username, post_id)
     )
 
 
 def add_comment(username, post_id, text):
     """Add comment by username on post_id."""
-    connection = insta485.model.get_db()
-    connection.execute(
+    cursor = insta485.model.get_db()
+    cursor.execute(
         "INSERT INTO comments (owner, postid, text) "
-        "VALUES (?, ?, ?);",
+        "VALUES (%s, %s, %s) RETURNING commentid;",
         (username, post_id, text)
     )
+    return cursor.fetchone()["commentid"]
 
 
 def remove_comment(username, comment_id):
     """Remove comment_id if username is comment owner."""
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
 
     # Check if comment exists and username is comment owner
-    comment_owner = connection.execute(
+    cursor.execute(
         "SELECT owner FROM comments "
-        "WHERE commentid = ?;",
+        "WHERE commentid = %s;",
         (comment_id)
-    ).fetchone()
+    )
+    comment_owner = cursor.fetchone()
     if comment_owner is None:
         flask.abort(404)
     elif username != comment_owner["owner"]:
         flask.abort(403)
 
     # Comment exists and username owns it so delete it
-    connection.execute(
+    cursor.execute(
         "DELETE FROM comments "
-        "WHERE commentid = ?;",
+        "WHERE commentid = %s;",
         (comment_id)
     )
 
 
 def add_follower(username1, username2):
     """Add username1 as follower of username2."""
-    connection = insta485.model.get_db()
+    cursor = insta485.model.get_db()
 
-    already_following = connection.execute(
+    cursor.execute(
         "SELECT * FROM following "
-        "WHERE username1 = ? "
-        "AND username2 = ?;",
+        "WHERE username1 = %s "
+        "AND username2 = %s;",
         (username1, username2)
-    ).fetchone() is not None
+    )
+    already_following = cursor.fetchone() is not None
 
     if already_following:
         flask.abort(400)
 
-    connection.execute(
+    cursor.execute(
         "INSERT INTO following (username1, username2) "
-        "VALUES (?, ?);",
+        "VALUES (%s, %s);",
         (username1, username2)
     )
 
 
 def remove_follower(username1, username2):
     """Remove username1 from followers of username2."""
-    connection = insta485.model.get_db()
-    connection.execute(
+    cursor = insta485.model.get_db()
+    cursor.execute(
         "DELETE FROM following "
-        "WHERE username1 = ? "
-        "AND username2 = ?;",
+        "WHERE username1 = %s "
+        "AND username2 = %s;",
         (username1, username2)
     )
 
