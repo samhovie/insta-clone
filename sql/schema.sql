@@ -50,7 +50,7 @@ CREATE TABLE comments(
 
 CREATE TABLE likes(
     owner       VARCHAR(20)     NOT NULL,
-    postid      SERIAL          NOT NULL,
+    postid      INTEGER         NOT NULL,
     created     TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY(owner, postid),
